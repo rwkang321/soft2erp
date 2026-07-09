@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.soft2erp.erp.master.item.ItemMapper">
+
+    <select id="findItems"
+            parameterType="com.soft2erp.erp.master.item.ItemSearchCondition"
+            resultType="com.soft2erp.erp.master.item.ItemDto">
+        select
+            item_code,
+            item_name,
+            item_type_code,
+            unit_code,
+            spec,
+            use_yn,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by
+        from mst_item
+        where 1 = 1
+        <if test="itemCode != null and itemCode != ''">
+            and item_code ilike concat('%', #{itemCode}, '%')
+        </if>
+        <if test="itemName != null and itemName != ''">
+            and item_name ilike concat('%', #{itemName}, '%')
+        </if>
+        <if test="itemTypeCode != null and itemTypeCode != ''">
+            and item_type_code = #{itemTypeCode}
+        </if>
+        <if test="useYn != null and useYn != ''">
+            and use_yn = #{useYn}
+        </if>
+        order by item_code
+    </select>
+
+    <select id="findItem" parameterType="string" resultType="com.soft2erp.erp.master.item.ItemDto">
+        select
+            item_code,
+            item_name,
+            item_type_code,
+            unit_code,
+            spec,
+            use_yn,
+            created_at,
+            created_by,
+            updated_at,
+            updated_by
+        from mst_item
+        where item_code = #{itemCode}
+    </select>
+
+    <select id="existsItem" parameterType="string" resultType="int">
+        select count(1)
+        from mst_item
+        where item_code = #{itemCode}
+    </select>
+
+    <insert id="insertItem" parameterType="com.soft2erp.erp.master.item.ItemDto">
+        insert into mst_item (
+            item_code,
+            item_name,
+            item_type_code,
+            unit_code,
+            spec,
+            use_yn,
+            created_by
+        ) values (
+            #{itemCode},
+            #{itemName},
+            #{itemTypeCode},
+            #{unitCode},
+            #{spec},
+            #{useYn},
+            #{createdBy}
+        )
+    </insert>
+
+    <update id="updateItem" parameterType="com.soft2erp.erp.master.item.ItemDto">
+        update mst_item
+        set
+            item_name = #{itemName},
+            item_type_code = #{itemTypeCode},
+            unit_code = #{unitCode},
+            spec = #{spec},
+            use_yn = #{useYn},
+            updated_at = now(),
+            updated_by = #{updatedBy}
+        where item_code = #{itemCode}
+    </update>
+
+    <delete id="deleteItem" parameterType="string">
+        delete from mst_item
+        where item_code = #{itemCode}
+    </delete>
+
+</mapper>
+

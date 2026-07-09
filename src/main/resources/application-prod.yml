@@ -1,0 +1,13 @@
+spring:
+  thymeleaf:
+    cache: true
+  datasource:
+    url: ${SOFT2ERP_DB_URL}
+    username: ${SOFT2ERP_DB_USERNAME}
+    password: ${SOFT2ERP_DB_PASSWORD}
+
+logging:
+  level:
+    root: INFO
+    com.soft2erp.erp: INFO
+

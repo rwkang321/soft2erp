@@ -1,0 +1,34 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: soft2erp
+  profiles:
+    active: dev
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${SOFT2ERP_DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    username: ${SOFT2ERP_DB_USERNAME:postgres}
+    password: ${SOFT2ERP_DB_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: ${SOFT2ERP_DB_POOL_MAX:10}
+      minimum-idle: ${SOFT2ERP_DB_POOL_MIN:2}
+  thymeleaf:
+    cache: false
+
+mybatis:
+  mapper-locations: classpath:/mapper/**/*.xml
+  type-aliases-package: com.soft2erp.erp
+  configuration:
+    map-underscore-to-camel-case: true
+
+springdoc:
+  swagger-ui:
+    path: /admin/dev/swagger
+
+logging:
+  level:
+    root: INFO
+    com.soft2erp.erp: DEBUG
+
