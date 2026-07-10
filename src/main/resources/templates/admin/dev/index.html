@@ -2,17 +2,409 @@
 <html lang="ko">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>soft2erp Dev</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f7f8fa;
+            --surface: #ffffff;
+            --line: #d9dee7;
+            --line-strong: #b8c0cc;
+            --text: #1f2937;
+            --muted: #667085;
+            --primary: #155eef;
+            --primary-strong: #114fc7;
+            --danger: #c03434;
+            --danger-bg: #fff1f1;
+            --ok: #147a46;
+            --ok-bg: #edf9f1;
+            --warn: #936300;
+            --warn-bg: #fff8db;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 14px;
+            letter-spacing: 0;
+        }
+
+        button, input, select, textarea { font: inherit; letter-spacing: 0; }
+
+        button {
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            min-height: 34px;
+            padding: 0 12px;
+            cursor: pointer;
+        }
+
+        button:hover { border-color: var(--primary); }
+        button.primary { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+        button.primary:hover { background: var(--primary-strong); border-color: var(--primary-strong); }
+        button.danger { background: var(--danger-bg); border-color: #efb3b3; color: var(--danger); }
+        button:disabled { cursor: not-allowed; opacity: .55; }
+
+        input, select, textarea {
+            width: 100%;
+            min-height: 34px;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--text);
+            padding: 7px 9px;
+        }
+
+        textarea { min-height: 72px; resize: vertical; }
+
+        label {
+            display: grid;
+            gap: 5px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .app-shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+
+        .topbar {
+            min-height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 0 22px;
+            border-bottom: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+        .brand strong { font-size: 17px; }
+        .brand span { color: var(--muted); font-size: 13px; }
+
+        .topnav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .topnav a {
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px 10px;
+            text-decoration: none;
+            background: #ffffff;
+        }
+
+        .workspace {
+            width: min(1500px, 100%);
+            margin: 0 auto;
+            padding: 20px 22px 28px;
+            display: grid;
+            gap: 14px;
+        }
+
+        .section-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        h1, h2 { margin: 0; letter-spacing: 0; }
+        h1 { font-size: 22px; line-height: 1.25; }
+        h2 { font-size: 16px; line-height: 1.3; }
+        .muted { color: var(--muted); }
+
+        .status {
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px 10px;
+            background: #ffffff;
+            color: var(--muted);
+        }
+
+        .status.ok { background: var(--ok-bg); border-color: #b7e0c4; color: var(--ok); }
+        .status.warn { background: var(--warn-bg); border-color: #ead58a; color: var(--warn); }
+        .status.error { background: var(--danger-bg); border-color: #efb3b3; color: var(--danger); }
+
+        .toolbar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(130px, 1fr)) auto;
+            gap: 10px;
+            align-items: end;
+            padding: 14px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        .tool-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+        .main-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 14px; align-items: start; }
+        .panel { border: 1px solid var(--line); background: var(--surface); }
+
+        .panel-header {
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .table-wrap { overflow: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 780px; }
+        th, td { border-bottom: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: middle; white-space: nowrap; }
+        th { position: sticky; top: 0; background: #f2f4f7; color: #475467; font-size: 12px; font-weight: 700; z-index: 1; }
+        tbody tr { cursor: pointer; }
+        tbody tr:hover { background: #f8fbff; }
+        tbody tr.selected { background: #eef4ff; }
+        .empty-row td { height: 128px; color: var(--muted); text-align: center; }
+        .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
+        .row-actions button { min-height: 30px; padding: 0 9px; }
+
+        .form-body { display: grid; gap: 11px; padding: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-actions { display: flex; justify-content: flex-end; gap: 8px; padding-top: 2px; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid var(--line);
+            background: #ffffff;
+        }
+
+        .badge.y { color: var(--ok); background: var(--ok-bg); border-color: #b7e0c4; }
+        .badge.n { color: var(--danger); background: var(--danger-bg); border-color: #efb3b3; }
+
+        @media (max-width: 1024px) {
+            .toolbar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .tool-actions { grid-column: 1 / -1; justify-content: flex-start; }
+            .main-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .topbar { height: auto; padding: 12px; align-items: flex-start; flex-direction: column; }
+            .workspace { padding: 14px 12px 22px; }
+            .toolbar, .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-<main>
-    <h1>soft2erp Dev</h1>
-    <ul>
-        <li><a href="/admin/dev/swagger">Swagger UI</a></li>
-        <li><a href="/api/system/common-codes">Common Code API</a></li>
-        <li><a href="/api/master/items">Item API</a></li>
-    </ul>
-</main>
+<div class="app-shell">
+    <header class="topbar">
+        <div class="brand"><strong>soft2erp</strong><span>Dev Console</span></div>
+        <nav class="topnav" aria-label="개발 메뉴">
+            <a href="/admin/dev/swagger">Swagger</a>
+            <a href="/api/system/common-codes">Common Codes</a>
+            <a href="/api/master/items">Item API</a>
+        </nav>
+    </header>
+
+    <main class="workspace">
+        <div class="section-title">
+            <div>
+                <h1>품목 마스터</h1>
+                <div class="muted" id="summaryText">0건</div>
+            </div>
+            <div class="status" id="statusText">대기</div>
+        </div>
+
+        <form class="toolbar" id="searchForm">
+            <label>품목코드<input id="searchItemCode" name="itemCode" autocomplete="off"></label>
+            <label>품목명<input id="searchItemName" name="itemName" autocomplete="off"></label>
+            <label>품목구분<select id="searchItemTypeCode" name="itemTypeCode"><option value="">전체</option></select></label>
+            <label>사용여부<select id="searchUseYn" name="useYn"><option value="">전체</option><option value="Y">사용</option><option value="N">미사용</option></select></label>
+            <div class="tool-actions">
+                <button type="submit" class="primary">조회</button>
+                <button type="button" id="resetSearchButton">초기화</button>
+                <button type="button" id="newItemButton">신규</button>
+            </div>
+        </form>
+
+        <div class="main-grid">
+            <section class="panel" aria-labelledby="listTitle">
+                <div class="panel-header">
+                    <h2 id="listTitle">품목 목록</h2>
+                    <span class="muted" id="lastLoadedText">-</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>품목코드</th><th>품목명</th><th>구분</th><th>단위</th><th>규격</th><th>사용</th><th>관리</th>
+                        </tr>
+                        </thead>
+                        <tbody id="itemTableBody">
+                        <tr class="empty-row"><td colspan="7">조회된 품목이 없습니다.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel" aria-labelledby="formTitle">
+                <div class="panel-header">
+                    <h2 id="formTitle">품목 등록</h2>
+                    <span class="badge" id="modeBadge">신규</span>
+                </div>
+                <form class="form-body" id="itemForm">
+                    <label>품목코드<input id="itemCode" name="itemCode" required maxlength="50" autocomplete="off"></label>
+                    <label>품목명<input id="itemName" name="itemName" required maxlength="200" autocomplete="off"></label>
+                    <div class="form-row">
+                        <label>품목구분<select id="itemTypeCode" name="itemTypeCode" required></select></label>
+                        <label>단위<select id="unitCode" name="unitCode" required></select></label>
+                    </div>
+                    <label>규격<textarea id="spec" name="spec" maxlength="200"></textarea></label>
+                    <label>사용여부<select id="useYn" name="useYn" required><option value="Y">사용</option><option value="N">미사용</option></select></label>
+                    <div class="form-actions">
+                        <button type="button" id="clearFormButton">비우기</button>
+                        <button type="submit" class="primary" id="saveButton">저장</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script th:inline="none">
+    const api = {items: '/api/master/items', codes: '/api/system/common-codes'};
+    const fallbackCodes = {
+        ITEM_TYPE: [{code: 'RAW', codeName: 'Raw Material'}, {code: 'HALF', codeName: 'Semi Finished Goods'}, {code: 'FIN', codeName: 'Finished Goods'}],
+        UNIT: [{code: 'EA', codeName: 'Each'}, {code: 'KG', codeName: 'Kilogram'}, {code: 'M', codeName: 'Meter'}]
+    };
+    const state = {items: [], selectedCode: null, editing: false, codes: {...fallbackCodes}};
+    const el = {
+        statusText: document.getElementById('statusText'), summaryText: document.getElementById('summaryText'), lastLoadedText: document.getElementById('lastLoadedText'), tableBody: document.getElementById('itemTableBody'),
+        searchForm: document.getElementById('searchForm'), searchItemCode: document.getElementById('searchItemCode'), searchItemName: document.getElementById('searchItemName'), searchItemTypeCode: document.getElementById('searchItemTypeCode'), searchUseYn: document.getElementById('searchUseYn'),
+        itemForm: document.getElementById('itemForm'), formTitle: document.getElementById('formTitle'), modeBadge: document.getElementById('modeBadge'), itemCode: document.getElementById('itemCode'), itemName: document.getElementById('itemName'), itemTypeCode: document.getElementById('itemTypeCode'), unitCode: document.getElementById('unitCode'), spec: document.getElementById('spec'), useYn: document.getElementById('useYn'),
+        resetSearchButton: document.getElementById('resetSearchButton'), newItemButton: document.getElementById('newItemButton'), clearFormButton: document.getElementById('clearFormButton')
+    };
+
+    function setStatus(message, type = '') { el.statusText.textContent = message; el.statusText.className = `status ${type}`.trim(); }
+    function codeName(group, code) { const match = (state.codes[group] || []).find(item => item.code === code); return match ? `${match.codeName} (${code})` : code; }
+    function escapeHtml(value) { return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }
+
+    async function requestJson(url, options = {}) {
+        const response = await fetch(url, {headers: {'Content-Type': 'application/json', ...(options.headers || {})}, ...options});
+        const body = await response.json().catch(() => null);
+        if (!response.ok || !body?.success) throw new Error(body?.message || `HTTP ${response.status}`);
+        return body.data;
+    }
+
+    async function loadCodes(group) {
+        try {
+            state.codes[group] = await requestJson(`${api.codes}?${new URLSearchParams({codeGroup: group, useYn: 'Y'}).toString()}`);
+        } catch (error) {
+            state.codes[group] = fallbackCodes[group];
+            setStatus(`공통코드 기본값 사용: ${group}`, 'warn');
+        }
+    }
+
+    function fillSelect(select, codes, includeAll = false) {
+        const options = includeAll ? ['<option value="">전체</option>'] : [];
+        for (const code of codes) options.push(`<option value="${escapeHtml(code.code)}">${escapeHtml(code.codeName)} (${escapeHtml(code.code)})</option>`);
+        select.innerHTML = options.join('');
+    }
+
+    function renderItems() {
+        el.summaryText.textContent = `${state.items.length}건`;
+        if (state.items.length === 0) {
+            el.tableBody.innerHTML = '<tr class="empty-row"><td colspan="7">조회된 품목이 없습니다.</td></tr>';
+            return;
+        }
+        el.tableBody.innerHTML = state.items.map(item => `
+            <tr data-item-code="${escapeHtml(item.itemCode)}" class="${state.selectedCode === item.itemCode ? 'selected' : ''}">
+                <td>${escapeHtml(item.itemCode)}</td><td>${escapeHtml(item.itemName)}</td><td>${escapeHtml(codeName('ITEM_TYPE', item.itemTypeCode))}</td><td>${escapeHtml(codeName('UNIT', item.unitCode))}</td><td>${escapeHtml(item.spec)}</td>
+                <td><span class="badge ${item.useYn === 'Y' ? 'y' : 'n'}">${item.useYn === 'Y' ? '사용' : '미사용'}</span></td>
+                <td><div class="row-actions"><button type="button" data-action="edit" data-item-code="${escapeHtml(item.itemCode)}">수정</button><button type="button" class="danger" data-action="delete" data-item-code="${escapeHtml(item.itemCode)}">삭제</button></div></td>
+            </tr>`).join('');
+    }
+
+    function buildSearchParams() {
+        const params = new URLSearchParams();
+        for (const [key, value] of [['itemCode', el.searchItemCode.value.trim()], ['itemName', el.searchItemName.value.trim()], ['itemTypeCode', el.searchItemTypeCode.value], ['useYn', el.searchUseYn.value]]) {
+            if (value) params.set(key, value);
+        }
+        return params;
+    }
+
+    async function loadItems() {
+        setStatus('조회 중');
+        const query = buildSearchParams().toString();
+        state.items = await requestJson(query ? `${api.items}?${query}` : api.items);
+        renderItems();
+        el.lastLoadedText.textContent = new Date().toLocaleString('ko-KR');
+        setStatus('조회 완료', 'ok');
+    }
+
+    function clearForm() {
+        state.selectedCode = null; state.editing = false;
+        el.formTitle.textContent = '품목 등록'; el.modeBadge.textContent = '신규'; el.modeBadge.className = 'badge';
+        el.itemCode.disabled = false; el.itemForm.reset(); el.useYn.value = 'Y'; renderItems();
+    }
+
+    function setForm(item) {
+        state.selectedCode = item.itemCode; state.editing = true;
+        el.formTitle.textContent = '품목 수정'; el.modeBadge.textContent = '수정'; el.modeBadge.className = 'badge y';
+        el.itemCode.value = item.itemCode; el.itemCode.disabled = true; el.itemName.value = item.itemName || ''; el.itemTypeCode.value = item.itemTypeCode || ''; el.unitCode.value = item.unitCode || ''; el.spec.value = item.spec || ''; el.useYn.value = item.useYn || 'Y';
+        renderItems();
+    }
+
+    function formPayload() { return {itemCode: el.itemCode.value.trim(), itemName: el.itemName.value.trim(), itemTypeCode: el.itemTypeCode.value, unitCode: el.unitCode.value, spec: el.spec.value.trim(), useYn: el.useYn.value}; }
+
+    async function saveItem(event) {
+        event.preventDefault();
+        const payload = formPayload();
+        if (!payload.itemCode || !payload.itemName || !payload.itemTypeCode || !payload.unitCode) { setStatus('필수값을 입력하세요', 'error'); return; }
+        setStatus('저장 중');
+        const url = state.editing ? `${api.items}/${encodeURIComponent(state.selectedCode)}` : api.items;
+        const method = state.editing ? 'PUT' : 'POST';
+        const body = state.editing ? {itemName: payload.itemName, itemTypeCode: payload.itemTypeCode, unitCode: payload.unitCode, spec: payload.spec, useYn: payload.useYn} : payload;
+        const saved = await requestJson(url, {method, body: JSON.stringify(body)});
+        setForm(saved);
+        await loadItems();
+        setStatus('저장 완료', 'ok');
+    }
+
+    async function deleteItem(itemCode) {
+        if (!confirm(`${itemCode} 품목을 삭제할까요?`)) return;
+        setStatus('삭제 중');
+        await requestJson(`${api.items}/${encodeURIComponent(itemCode)}`, {method: 'DELETE'});
+        if (state.selectedCode === itemCode) clearForm();
+        await loadItems();
+        setStatus('삭제 완료', 'ok');
+    }
+
+    el.searchForm.addEventListener('submit', event => { event.preventDefault(); loadItems().catch(error => setStatus(error.message, 'error')); });
+    el.resetSearchButton.addEventListener('click', () => { el.searchForm.reset(); loadItems().catch(error => setStatus(error.message, 'error')); });
+    el.newItemButton.addEventListener('click', clearForm);
+    el.clearFormButton.addEventListener('click', clearForm);
+    el.itemForm.addEventListener('submit', event => { saveItem(event).catch(error => setStatus(error.message, 'error')); });
+    el.tableBody.addEventListener('click', event => {
+        const button = event.target.closest('button[data-action]');
+        const row = event.target.closest('tr[data-item-code]');
+        if (!row) return;
+        const itemCode = row.dataset.itemCode;
+        const item = state.items.find(entry => entry.itemCode === itemCode);
+        if (button?.dataset.action === 'delete') { deleteItem(itemCode).catch(error => setStatus(error.message, 'error')); return; }
+        if (item) setForm(item);
+    });
+
+    async function init() {
+        setStatus('초기화 중');
+        await Promise.all([loadCodes('ITEM_TYPE'), loadCodes('UNIT')]);
+        fillSelect(el.searchItemTypeCode, state.codes.ITEM_TYPE, true);
+        fillSelect(el.itemTypeCode, state.codes.ITEM_TYPE);
+        fillSelect(el.unitCode, state.codes.UNIT);
+        clearForm();
+        await loadItems();
+    }
+    init().catch(error => setStatus(error.message, 'error'));
+</script>
 </body>
 </html>
-
