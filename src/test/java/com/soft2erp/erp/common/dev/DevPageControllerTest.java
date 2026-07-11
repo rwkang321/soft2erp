@@ -29,6 +29,8 @@ class DevPageControllerTest {
                 .andExpect(view().name("admin/dev/index"))
                 .andExpect(content().string(containsString("품목 마스터")))
                 .andExpect(content().string(containsString("id=\"itemForm\"")))
+                .andExpect(content().string(containsString("id=\"themeButton\"")))
+                .andExpect(content().string(containsString("data-theme-option=\"dark\"")))
                 .andExpect(content().string(containsString("/api/master/items")));
     }
 }

@@ -4,6 +4,14 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>soft2erp Dev</title>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("soft2erp.theme") || "system";
+            if (theme === "light" || theme === "dark") {
+                document.documentElement.dataset.theme = theme;
+            }
+        })();
+    </script>
     <style>
         :root {
             color-scheme: light;
@@ -21,6 +29,59 @@
             --ok-bg: #edf9f1;
             --warn: #936300;
             --warn-bg: #fff8db;
+            --field: #ffffff;
+            --table-header: #f2f4f7;
+            --row-hover: #f8fbff;
+            --row-selected: #eef4ff;
+            --shadow: 0 14px 34px rgba(15, 23, 42, .14);
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #0f172a;
+            --surface: #111827;
+            --line: #293548;
+            --line-strong: #3b4a61;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --primary: #22a699;
+            --primary-strong: #16877d;
+            --danger: #ff8c8c;
+            --danger-bg: #3a1d24;
+            --ok: #73d69c;
+            --ok-bg: #143525;
+            --warn: #ffd166;
+            --warn-bg: #3c3216;
+            --field: #0b1220;
+            --table-header: #172033;
+            --row-hover: #152033;
+            --row-selected: #18314f;
+            --shadow: 0 16px 40px rgba(0, 0, 0, .34);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) {
+                color-scheme: dark;
+                --bg: #0f172a;
+                --surface: #111827;
+                --line: #293548;
+                --line-strong: #3b4a61;
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --primary: #22a699;
+                --primary-strong: #16877d;
+                --danger: #ff8c8c;
+                --danger-bg: #3a1d24;
+                --ok: #73d69c;
+                --ok-bg: #143525;
+                --warn: #ffd166;
+                --warn-bg: #3c3216;
+                --field: #0b1220;
+                --table-header: #172033;
+                --row-hover: #152033;
+                --row-selected: #18314f;
+                --shadow: 0 16px 40px rgba(0, 0, 0, .34);
+            }
         }
 
         * { box-sizing: border-box; }
@@ -57,7 +118,7 @@
             min-height: 34px;
             border: 1px solid var(--line);
             border-radius: 6px;
-            background: #ffffff;
+            background: var(--field);
             color: var(--text);
             padding: 7px 9px;
         }
@@ -96,7 +157,68 @@
             border-radius: 6px;
             padding: 7px 10px;
             text-decoration: none;
-            background: #ffffff;
+            background: var(--field);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .theme-menu {
+            position: relative;
+        }
+
+        .theme-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            min-width: 132px;
+            justify-content: space-between;
+            background: var(--field);
+        }
+
+        .theme-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: var(--primary);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+        }
+
+        .theme-options {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 6px);
+            min-width: 132px;
+            display: none;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+            padding: 4px;
+            z-index: 20;
+        }
+
+        .theme-menu.open .theme-options {
+            display: grid;
+        }
+
+        .theme-options button {
+            width: 100%;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        .theme-options button:hover,
+        .theme-options button.active {
+            background: var(--row-selected);
         }
 
         .workspace {
@@ -120,7 +242,7 @@
             border: 1px solid var(--line);
             border-radius: 6px;
             padding: 7px 10px;
-            background: #ffffff;
+            background: var(--field);
             color: var(--muted);
         }
 
@@ -155,10 +277,10 @@
         .table-wrap { overflow: auto; }
         table { width: 100%; border-collapse: collapse; min-width: 780px; }
         th, td { border-bottom: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: middle; white-space: nowrap; }
-        th { position: sticky; top: 0; background: #f2f4f7; color: #475467; font-size: 12px; font-weight: 700; z-index: 1; }
+        th { position: sticky; top: 0; background: var(--table-header); color: #475467; font-size: 12px; font-weight: 700; z-index: 1; }
         tbody tr { cursor: pointer; }
-        tbody tr:hover { background: #f8fbff; }
-        tbody tr.selected { background: #eef4ff; }
+        tbody tr:hover { background: var(--row-hover); }
+        tbody tr.selected { background: var(--row-selected); }
         .empty-row td { height: 128px; color: var(--muted); text-align: center; }
         .row-actions { display: flex; gap: 6px; justify-content: flex-end; }
         .row-actions button { min-height: 30px; padding: 0 9px; }
@@ -176,7 +298,7 @@
             font-size: 12px;
             font-weight: 700;
             border: 1px solid var(--line);
-            background: #ffffff;
+            background: var(--field);
         }
 
         .badge.y { color: var(--ok); background: var(--ok-bg); border-color: #b7e0c4; }
@@ -190,6 +312,7 @@
 
         @media (max-width: 640px) {
             .topbar { height: auto; padding: 12px; align-items: flex-start; flex-direction: column; }
+            .top-actions { width: 100%; justify-content: flex-start; }
             .workspace { padding: 14px 12px 22px; }
             .toolbar, .form-row { grid-template-columns: 1fr; }
         }
@@ -199,11 +322,25 @@
 <div class="app-shell">
     <header class="topbar">
         <div class="brand"><strong>soft2erp</strong><span>Dev Console</span></div>
-        <nav class="topnav" aria-label="개발 메뉴">
-            <a href="/admin/dev/swagger">Swagger</a>
-            <a href="/api/system/common-codes">Common Codes</a>
-            <a href="/api/master/items">Item API</a>
-        </nav>
+        <div class="top-actions">
+            <nav class="topnav" aria-label="개발 메뉴">
+                <a href="/admin/dev/swagger">Swagger</a>
+                <a href="/api/system/common-codes">Common Codes</a>
+                <a href="/api/master/items">Item API</a>
+            </nav>
+            <div class="theme-menu" id="themeMenu">
+                <button type="button" class="theme-button" id="themeButton" aria-haspopup="true" aria-expanded="false">
+                    <span class="theme-dot" aria-hidden="true"></span>
+                    <span>Theme</span>
+                    <span id="themeLabel">시스템</span>
+                </button>
+                <div class="theme-options" id="themeOptions" role="menu" aria-label="테마 선택">
+                    <button type="button" role="menuitem" data-theme-option="system">시스템</button>
+                    <button type="button" role="menuitem" data-theme-option="light">라이트</button>
+                    <button type="button" role="menuitem" data-theme-option="dark">다크</button>
+                </div>
+            </div>
+        </div>
     </header>
 
     <main class="workspace">
@@ -272,6 +409,8 @@
 </div>
 
 <script th:inline="none">
+    const themeLabels = {system: '시스템', light: '라이트', dark: '다크'};
+    const themeStorageKey = 'soft2erp.theme';
     const api = {items: '/api/master/items', codes: '/api/system/common-codes'};
     const fallbackCodes = {
         ITEM_TYPE: [{code: 'RAW', codeName: 'Raw Material'}, {code: 'HALF', codeName: 'Semi Finished Goods'}, {code: 'FIN', codeName: 'Finished Goods'}],
@@ -282,8 +421,49 @@
         statusText: document.getElementById('statusText'), summaryText: document.getElementById('summaryText'), lastLoadedText: document.getElementById('lastLoadedText'), tableBody: document.getElementById('itemTableBody'),
         searchForm: document.getElementById('searchForm'), searchItemCode: document.getElementById('searchItemCode'), searchItemName: document.getElementById('searchItemName'), searchItemTypeCode: document.getElementById('searchItemTypeCode'), searchUseYn: document.getElementById('searchUseYn'),
         itemForm: document.getElementById('itemForm'), formTitle: document.getElementById('formTitle'), modeBadge: document.getElementById('modeBadge'), itemCode: document.getElementById('itemCode'), itemName: document.getElementById('itemName'), itemTypeCode: document.getElementById('itemTypeCode'), unitCode: document.getElementById('unitCode'), spec: document.getElementById('spec'), useYn: document.getElementById('useYn'),
-        resetSearchButton: document.getElementById('resetSearchButton'), newItemButton: document.getElementById('newItemButton'), clearFormButton: document.getElementById('clearFormButton')
+        resetSearchButton: document.getElementById('resetSearchButton'), newItemButton: document.getElementById('newItemButton'), clearFormButton: document.getElementById('clearFormButton'),
+        themeMenu: document.getElementById('themeMenu'), themeButton: document.getElementById('themeButton'), themeLabel: document.getElementById('themeLabel'), themeOptions: document.getElementById('themeOptions')
     };
+
+    function applyTheme(theme) {
+        const selectedTheme = themeLabels[theme] ? theme : 'system';
+        localStorage.setItem(themeStorageKey, selectedTheme);
+        if (selectedTheme === 'light' || selectedTheme === 'dark') {
+            document.documentElement.dataset.theme = selectedTheme;
+        } else {
+            delete document.documentElement.dataset.theme;
+        }
+        el.themeLabel.textContent = themeLabels[selectedTheme];
+        for (const button of el.themeOptions.querySelectorAll('button[data-theme-option]')) {
+            button.classList.toggle('active', button.dataset.themeOption === selectedTheme);
+        }
+    }
+
+    function closeThemeMenu() {
+        el.themeMenu.classList.remove('open');
+        el.themeButton.setAttribute('aria-expanded', 'false');
+    }
+
+    function initTheme() {
+        applyTheme(localStorage.getItem(themeStorageKey) || 'system');
+        el.themeButton.addEventListener('click', () => {
+            const open = !el.themeMenu.classList.contains('open');
+            el.themeMenu.classList.toggle('open', open);
+            el.themeButton.setAttribute('aria-expanded', String(open));
+        });
+        el.themeOptions.addEventListener('click', event => {
+            const button = event.target.closest('button[data-theme-option]');
+            if (!button) return;
+            applyTheme(button.dataset.themeOption);
+            closeThemeMenu();
+        });
+        document.addEventListener('click', event => {
+            if (!el.themeMenu.contains(event.target)) closeThemeMenu();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeThemeMenu();
+        });
+    }
 
     function setStatus(message, type = '') { el.statusText.textContent = message; el.statusText.className = `status ${type}`.trim(); }
     function codeName(group, code) { const match = (state.codes[group] || []).find(item => item.code === code); return match ? `${match.codeName} (${code})` : code; }
@@ -404,6 +584,7 @@
         clearForm();
         await loadItems();
     }
+    initTheme();
     init().catch(error => setStatus(error.message, 'error'));
 </script>
 </body>
