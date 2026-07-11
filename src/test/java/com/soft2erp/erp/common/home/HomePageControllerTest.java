@@ -1,4 +1,4 @@
-package com.soft2erp.erp.common.dev;
+package com.soft2erp.erp.common.home;
 
 import com.soft2erp.erp.common.config.SecurityConfig;
 import org.junit.jupiter.api.DisplayName;
@@ -14,24 +14,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@WebMvcTest(DevPageController.class)
+@WebMvcTest(HomePageController.class)
 @Import(SecurityConfig.class)
-class DevPageControllerTest {
+class HomePageControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
-    @DisplayName("개발 도구 페이지를 반환한다")
-    void indexReturnsDevPage() throws Exception {
-        mockMvc.perform(get("/admin/dev"))
+    @DisplayName("soft2erp 메인 페이지를 반환한다")
+    void indexReturnsHomePage() throws Exception {
+        mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(view().name("admin/dev/index"))
-                .andExpect(content().string(containsString("품목 마스터")))
-                .andExpect(content().string(containsString("href=\"/\"")))
-                .andExpect(content().string(containsString("id=\"itemForm\"")))
-                .andExpect(content().string(containsString("id=\"themeButton\"")))
-                .andExpect(content().string(containsString("data-theme-option=\"dark\"")))
-                .andExpect(content().string(containsString("/api/master/items")));
+                .andExpect(view().name("home/index"))
+                .andExpect(content().string(containsString("soft2erp 전체 메뉴")))
+                .andExpect(content().string(containsString("시스템 관리")))
+                .andExpect(content().string(containsString("기준 정보")))
+                .andExpect(content().string(containsString("/admin/dev")))
+                .andExpect(content().string(containsString("id=\"themeButton\"")));
     }
 }

@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>soft2erp</title>
+    <script>
+        (() => {
+            const theme = localStorage.getItem("soft2erp.theme") || "system";
+            if (theme === "light" || theme === "dark") {
+                document.documentElement.dataset.theme = theme;
+            }
+        })();
+    </script>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f6f8fb;
+            --surface: #ffffff;
+            --surface-2: #f1f5f9;
+            --line: #d9dee7;
+            --line-strong: #b8c0cc;
+            --text: #172033;
+            --muted: #667085;
+            --primary: #155eef;
+            --primary-strong: #114fc7;
+            --accent: #0f9f8f;
+            --danger: #c03434;
+            --ok: #147a46;
+            --warn: #936300;
+            --field: #ffffff;
+            --row-hover: #f8fbff;
+            --row-selected: #eef4ff;
+            --shadow: 0 16px 42px rgba(15, 23, 42, .12);
+        }
+
+        :root[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #0f172a;
+            --surface: #111827;
+            --surface-2: #172033;
+            --line: #293548;
+            --line-strong: #3b4a61;
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --primary: #22a699;
+            --primary-strong: #16877d;
+            --accent: #73d69c;
+            --danger: #ff8c8c;
+            --ok: #73d69c;
+            --warn: #ffd166;
+            --field: #0b1220;
+            --row-hover: #152033;
+            --row-selected: #18314f;
+            --shadow: 0 18px 46px rgba(0, 0, 0, .34);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root:not([data-theme="light"]):not([data-theme="dark"]) {
+                color-scheme: dark;
+                --bg: #0f172a;
+                --surface: #111827;
+                --surface-2: #172033;
+                --line: #293548;
+                --line-strong: #3b4a61;
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --primary: #22a699;
+                --primary-strong: #16877d;
+                --accent: #73d69c;
+                --danger: #ff8c8c;
+                --ok: #73d69c;
+                --warn: #ffd166;
+                --field: #0b1220;
+                --row-hover: #152033;
+                --row-selected: #18314f;
+                --shadow: 0 18px 46px rgba(0, 0, 0, .34);
+            }
+        }
+
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 14px;
+            letter-spacing: 0;
+        }
+
+        button, input, select { font: inherit; letter-spacing: 0; }
+
+        a { color: inherit; }
+
+        button {
+            border: 1px solid var(--line-strong);
+            border-radius: 6px;
+            background: var(--field);
+            color: var(--text);
+            min-height: 34px;
+            padding: 0 12px;
+            cursor: pointer;
+        }
+
+        button:hover { border-color: var(--primary); }
+
+        .app-shell { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 30;
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 0 22px;
+            border-bottom: 1px solid var(--line);
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            backdrop-filter: blur(12px);
+        }
+
+        .brand { display: flex; align-items: center; gap: 10px; min-width: 0; text-decoration: none; }
+        .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 7px; background: var(--primary); color: #ffffff; font-weight: 800; }
+        .brand-copy { display: grid; gap: 1px; }
+        .brand strong { font-size: 16px; line-height: 1; }
+        .brand span { color: var(--muted); font-size: 12px; }
+
+        .top-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+        .topnav { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .topnav a {
+            color: var(--text);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 7px 10px;
+            text-decoration: none;
+            background: var(--field);
+        }
+        .topnav a.primary { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+
+        .theme-menu { position: relative; }
+        .theme-button { display: inline-flex; align-items: center; gap: 7px; min-width: 132px; justify-content: space-between; }
+        .theme-dot { width: 9px; height: 9px; border-radius: 999px; background: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); }
+        .theme-options { position: absolute; right: 0; top: calc(100% + 6px); min-width: 132px; display: none; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); box-shadow: var(--shadow); padding: 4px; z-index: 40; }
+        .theme-menu.open .theme-options { display: grid; }
+        .theme-options button { width: 100%; border: 0; border-radius: 4px; background: transparent; text-align: left; }
+        .theme-options button:hover, .theme-options button.active { background: var(--row-selected); }
+
+        .page { width: min(1480px, 100%); margin: 0 auto; padding: 22px; display: grid; gap: 16px; }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(420px, .95fr);
+            gap: 16px;
+            align-items: stretch;
+        }
+
+        .hero-main, .system-panel, .menu-panel, .module-section {
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        .hero-main { padding: 26px; display: grid; align-content: space-between; gap: 22px; min-height: 320px; }
+        .eyebrow { color: var(--accent); font-size: 12px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+        h1, h2, h3 { margin: 0; letter-spacing: 0; }
+        h1 { max-width: 760px; font-size: clamp(30px, 4vw, 54px); line-height: 1.04; }
+        h2 { font-size: 18px; line-height: 1.3; }
+        h3 { font-size: 15px; line-height: 1.35; }
+        .hero-main p { max-width: 760px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+
+        .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .button-link { display: inline-flex; align-items: center; justify-content: center; min-height: 38px; border-radius: 6px; padding: 0 13px; border: 1px solid var(--line-strong); background: var(--field); text-decoration: none; }
+        .button-link.primary { background: var(--primary); border-color: var(--primary); color: #ffffff; }
+        .button-link:hover { border-color: var(--primary); }
+
+        .system-panel { padding: 18px; display: grid; grid-template-rows: auto 1fr; gap: 14px; }
+        .metric-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .metric { min-height: 88px; border: 1px solid var(--line); background: var(--field); padding: 13px; display: grid; align-content: space-between; }
+        .metric span { color: var(--muted); font-size: 12px; }
+        .metric strong { font-size: 22px; }
+        .metric.ok strong { color: var(--ok); }
+        .metric.warn strong { color: var(--warn); }
+
+        .menu-panel { display: grid; gap: 0; }
+        .panel-header { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+        .menu-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; }
+        .menu-card { min-height: 112px; display: grid; gap: 8px; align-content: start; padding: 14px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); text-decoration: none; background: var(--surface); }
+        .menu-card:hover { background: var(--row-hover); }
+        .menu-card:nth-child(4n) { border-right: 0; }
+        .menu-card strong { font-size: 15px; }
+        .menu-card span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+        .status-chip { width: fit-content; border: 1px solid var(--line); border-radius: 6px; padding: 3px 7px; color: var(--muted); font-size: 11px; font-weight: 700; }
+        .status-chip.ready { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 35%, var(--line)); }
+        .status-chip.progress { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 35%, var(--line)); }
+
+        .content-grid { display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items: start; }
+        .side-menu { position: sticky; top: 76px; border: 1px solid var(--line); background: var(--surface); padding: 10px; display: grid; gap: 4px; }
+        .side-menu a { border-radius: 6px; padding: 9px 10px; text-decoration: none; color: var(--text); }
+        .side-menu a:hover { background: var(--row-hover); }
+
+        .module-stack { display: grid; gap: 14px; }
+        .module-section { scroll-margin-top: 78px; padding: 16px; display: grid; gap: 12px; }
+        .module-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+        .module-header p { margin: 0; color: var(--muted); line-height: 1.55; }
+        .link-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+        .link-card { min-height: 74px; border: 1px solid var(--line); background: var(--field); padding: 12px; text-decoration: none; display: grid; gap: 5px; }
+        .link-card:hover { border-color: var(--primary); }
+        .link-card strong { font-size: 13px; }
+        .link-card span { color: var(--muted); font-size: 12px; }
+
+        @media (max-width: 1100px) {
+            .hero, .content-grid { grid-template-columns: 1fr; }
+            .system-panel { min-height: auto; }
+            .side-menu { position: static; }
+            .menu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .menu-card:nth-child(4n) { border-right: 1px solid var(--line); }
+            .menu-card:nth-child(2n) { border-right: 0; }
+        }
+
+        @media (max-width: 680px) {
+            .topbar { align-items: flex-start; flex-direction: column; padding: 12px; }
+            .top-actions { width: 100%; justify-content: flex-start; }
+            .page { padding: 12px; }
+            .hero-main { padding: 18px; min-height: auto; }
+            .menu-grid, .metric-grid, .link-list { grid-template-columns: 1fr; }
+            .menu-card { border-right: 0; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-shell">
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="soft2erp 홈">
+            <span class="brand-mark">S</span>
+            <span class="brand-copy"><strong>soft2erp</strong><span>ERP Gateway</span></span>
+        </a>
+        <div class="top-actions">
+            <nav class="topnav" aria-label="주요 메뉴">
+                <a class="primary" href="/">Home</a>
+                <a href="/admin/dev">품목 마스터</a>
+                <a href="/admin/dev/swagger">Swagger</a>
+            </nav>
+            <div class="theme-menu" id="themeMenu">
+                <button type="button" class="theme-button" id="themeButton" aria-haspopup="true" aria-expanded="false">
+                    <span class="theme-dot" aria-hidden="true"></span>
+                    <span>Theme</span>
+                    <span id="themeLabel">시스템</span>
+                </button>
+                <div class="theme-options" id="themeOptions" role="menu" aria-label="테마 선택">
+                    <button type="button" role="menuitem" data-theme-option="system">시스템</button>
+                    <button type="button" role="menuitem" data-theme-option="light">라이트</button>
+                    <button type="button" role="menuitem" data-theme-option="dark">다크</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="hero" aria-labelledby="homeTitle">
+            <div class="hero-main">
+                <div>
+                    <div class="eyebrow">SOFT2ERP OPERATIONS HUB</div>
+                    <h1 id="homeTitle">업무 기준정보부터 실행 관리까지 연결하는 ERP 메인 게이트웨이</h1>
+                </div>
+                <p>soft2erp는 시스템 관리, 공통코드, 기준정보, 영업, 구매, 자재, 생산, 품질, 재고, 출하, 원가 관리 흐름을 하나의 메뉴 구조로 묶어 확장해 나가는 Spring Boot 기반 ERP 프로젝트입니다.</p>
+                <div class="hero-actions">
+                    <a class="button-link primary" href="/admin/dev">품목 마스터 열기</a>
+                    <a class="button-link" href="#all-menu">전체 메뉴 보기</a>
+                    <a class="button-link" href="/admin/dev/swagger">API 문서</a>
+                </div>
+            </div>
+            <aside class="system-panel" aria-label="현재 구축 상태">
+                <div class="panel-header"><h2>구축 상태</h2><span class="status-chip progress">진행중</span></div>
+                <div class="metric-grid">
+                    <div class="metric ok"><span>DB 연결</span><strong>OK</strong></div>
+                    <div class="metric ok"><span>GitHub</span><strong>main</strong></div>
+                    <div class="metric ok"><span>품목 CRUD</span><strong>완료</strong></div>
+                    <div class="metric warn"><span>보안 전환</span><strong>예정</strong></div>
+                </div>
+            </aside>
+        </section>
+
+        <section class="menu-panel" id="all-menu" aria-labelledby="allMenuTitle">
+            <div class="panel-header"><h2 id="allMenuTitle">soft2erp 전체 메뉴</h2><span class="status-chip">메뉴 클릭 시 이동</span></div>
+            <div class="menu-grid">
+                <a class="menu-card" href="#system"><strong>시스템 관리</strong><span>환경, 진행 현황, 개발 도구</span><span class="status-chip ready">일부 사용 가능</span></a>
+                <a class="menu-card" href="#common"><strong>공통 관리</strong><span>공통코드, 공통응답, 공통예외, 로그</span><span class="status-chip progress">진행중</span></a>
+                <a class="menu-card" href="#security"><strong>보안/권한 관리</strong><span>로그인, 권한, 역할, 메뉴 권한</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#master"><strong>기준 정보</strong><span>품목 마스터와 기준 데이터</span><span class="status-chip ready">품목 사용 가능</span></a>
+                <a class="menu-card" href="#sales"><strong>영업관리</strong><span>수주, 거래처, 매출 흐름</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#purchase"><strong>구매관리</strong><span>발주, 입고 요청, 구매 단가</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#material"><strong>자재관리</strong><span>자재 요청, 출고, 재고 이동</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#production"><strong>생산관리</strong><span>생산계획, 작업지시, 실적</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#quality"><strong>품질관리</strong><span>검사 기준, 수입/공정/출하 검사</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#inventory"><strong>재고관리</strong><span>현재고, 수불, 창고 관리</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#shipment"><strong>출하관리</strong><span>출하 지시, 납품, 배송 추적</span><span class="status-chip">예정</span></a>
+                <a class="menu-card" href="#cost"><strong>원가관리</strong><span>표준원가, 실적원가, 분석</span><span class="status-chip">예정</span></a>
+            </div>
+        </section>
+
+        <section class="content-grid" aria-label="업무 모듈 상세">
+            <nav class="side-menu" aria-label="업무 섹션 이동">
+                <a href="#system">시스템 관리</a>
+                <a href="#common">공통 관리</a>
+                <a href="#security">보안/권한 관리</a>
+                <a href="#master">기준 정보</a>
+                <a href="#sales">영업관리</a>
+                <a href="#purchase">구매관리</a>
+                <a href="#material">자재관리</a>
+                <a href="#production">생산관리</a>
+                <a href="#quality">품질관리</a>
+                <a href="#inventory">재고관리</a>
+                <a href="#shipment">출하관리</a>
+                <a href="#cost">원가관리</a>
+            </nav>
+
+            <div class="module-stack">
+                <section class="module-section" id="system"><div class="module-header"><div><h2>시스템 관리</h2><p>개발 콘솔, API 문서, 프로젝트 진행 현황을 관리합니다.</p></div><span class="status-chip ready">사용 가능</span></div><div class="link-list"><a class="link-card" href="/admin/dev"><strong>개발 콘솔</strong><span>품목 마스터 CRUD 화면</span></a><a class="link-card" href="/admin/dev/swagger"><strong>Swagger UI</strong><span>REST API 문서</span></a><a class="link-card" href="/api/master/items"><strong>품목 API</strong><span>JSON 목록 확인</span></a></div></section>
+                <section class="module-section" id="common"><div class="module-header"><div><h2>공통 관리</h2><p>공통코드, 표준 응답, 표준 예외, 로그 정책을 ERP 전반의 기반으로 사용합니다.</p></div><span class="status-chip progress">진행중</span></div><div class="link-list"><a class="link-card" href="/api/system/common-codes"><strong>공통코드 API</strong><span>ITEM_TYPE, UNIT, USE_YN 조회</span></a><a class="link-card" href="/admin/dev"><strong>공통코드 사용 화면</strong><span>품목 구분/단위 선택</span></a><a class="link-card" href="#common"><strong>공통 로그</strong><span>정책 수립 예정</span></a></div></section>
+                <section class="module-section" id="security"><div class="module-header"><div><h2>보안/권한 관리</h2><p>현재는 개발 편의를 위해 대부분 허용 상태이며, 운영 전 로그인과 권한 체계로 전환합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="/api/auth/login"><strong>로그인 API</strong><span>개발용 로그인 응답</span></a><a class="link-card" href="#security"><strong>역할 관리</strong><span>sys_role 기반 확장</span></a><a class="link-card" href="#security"><strong>메뉴 권한</strong><span>sys_role_menu 기반 확장</span></a></div></section>
+                <section class="module-section" id="master"><div class="module-header"><div><h2>기준 정보</h2><p>업무 모듈에서 공통으로 사용하는 품목, 거래처, 창고, 작업장 같은 기준 데이터를 관리합니다.</p></div><span class="status-chip ready">품목 완료</span></div><div class="link-list"><a class="link-card" href="/admin/dev"><strong>품목 마스터</strong><span>검색/등록/수정/삭제</span></a><a class="link-card" href="#master"><strong>거래처 마스터</strong><span>예정</span></a><a class="link-card" href="#master"><strong>창고 마스터</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="sales"><div class="module-header"><div><h2>영업관리</h2><p>수주부터 매출까지 고객 주문 흐름을 관리하는 영역입니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#sales"><strong>수주 관리</strong><span>예정</span></a><a class="link-card" href="#sales"><strong>매출 관리</strong><span>예정</span></a><a class="link-card" href="#sales"><strong>거래처 현황</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="purchase"><div class="module-header"><div><h2>구매관리</h2><p>구매 요청, 발주, 입고 예정, 구매 단가를 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#purchase"><strong>발주 관리</strong><span>예정</span></a><a class="link-card" href="#purchase"><strong>입고 예정</strong><span>예정</span></a><a class="link-card" href="#purchase"><strong>구매 단가</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="material"><div class="module-header"><div><h2>자재관리</h2><p>자재 요청, 출고, 반납, 이동을 생산과 재고 흐름에 연결합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#material"><strong>자재 요청</strong><span>예정</span></a><a class="link-card" href="#material"><strong>자재 출고</strong><span>예정</span></a><a class="link-card" href="#material"><strong>자재 이동</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="production"><div class="module-header"><div><h2>생산관리</h2><p>생산계획, 작업지시, 생산실적과 공정 상태를 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#production"><strong>생산계획</strong><span>예정</span></a><a class="link-card" href="#production"><strong>작업지시</strong><span>예정</span></a><a class="link-card" href="#production"><strong>생산실적</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="quality"><div class="module-header"><div><h2>품질관리</h2><p>검사 기준과 수입/공정/출하 검사 결과를 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#quality"><strong>검사 기준</strong><span>예정</span></a><a class="link-card" href="#quality"><strong>검사 결과</strong><span>예정</span></a><a class="link-card" href="#quality"><strong>부적합 관리</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="inventory"><div class="module-header"><div><h2>재고관리</h2><p>현재고, 재고 수불, 창고별 재고와 조정 이력을 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#inventory"><strong>현재고</strong><span>예정</span></a><a class="link-card" href="#inventory"><strong>재고 수불</strong><span>예정</span></a><a class="link-card" href="#inventory"><strong>재고 조정</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="shipment"><div class="module-header"><div><h2>출하관리</h2><p>출하 지시, 출고, 납품과 배송 상태를 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#shipment"><strong>출하 지시</strong><span>예정</span></a><a class="link-card" href="#shipment"><strong>납품 관리</strong><span>예정</span></a><a class="link-card" href="#shipment"><strong>배송 추적</strong><span>예정</span></a></div></section>
+                <section class="module-section" id="cost"><div class="module-header"><div><h2>원가관리</h2><p>표준원가, 실적원가, 차이 분석을 통해 원가 흐름을 관리합니다.</p></div><span class="status-chip">예정</span></div><div class="link-list"><a class="link-card" href="#cost"><strong>표준원가</strong><span>예정</span></a><a class="link-card" href="#cost"><strong>실적원가</strong><span>예정</span></a><a class="link-card" href="#cost"><strong>원가 분석</strong><span>예정</span></a></div></section>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script th:inline="none">
+    const themeLabels = {system: '시스템', light: '라이트', dark: '다크'};
+    const themeStorageKey = 'soft2erp.theme';
+    const el = {
+        themeMenu: document.getElementById('themeMenu'),
+        themeButton: document.getElementById('themeButton'),
+        themeLabel: document.getElementById('themeLabel'),
+        themeOptions: document.getElementById('themeOptions')
+    };
+
+    function applyTheme(theme) {
+        const selectedTheme = themeLabels[theme] ? theme : 'system';
+        localStorage.setItem(themeStorageKey, selectedTheme);
+        if (selectedTheme === 'light' || selectedTheme === 'dark') {
+            document.documentElement.dataset.theme = selectedTheme;
+        } else {
+            delete document.documentElement.dataset.theme;
+        }
+        el.themeLabel.textContent = themeLabels[selectedTheme];
+        for (const button of el.themeOptions.querySelectorAll('button[data-theme-option]')) {
+            button.classList.toggle('active', button.dataset.themeOption === selectedTheme);
+        }
+    }
+
+    function closeThemeMenu() {
+        el.themeMenu.classList.remove('open');
+        el.themeButton.setAttribute('aria-expanded', 'false');
+    }
+
+    function initTheme() {
+        applyTheme(localStorage.getItem(themeStorageKey) || 'system');
+        el.themeButton.addEventListener('click', () => {
+            const open = !el.themeMenu.classList.contains('open');
+            el.themeMenu.classList.toggle('open', open);
+            el.themeButton.setAttribute('aria-expanded', String(open));
+        });
+        el.themeOptions.addEventListener('click', event => {
+            const button = event.target.closest('button[data-theme-option]');
+            if (!button) return;
+            applyTheme(button.dataset.themeOption);
+            closeThemeMenu();
+        });
+        document.addEventListener('click', event => {
+            if (!el.themeMenu.contains(event.target)) closeThemeMenu();
+        });
+        document.addEventListener('keydown', event => {
+            if (event.key === 'Escape') closeThemeMenu();
+        });
+    }
+
+    initTheme();
+</script>
+</body>
+</html>
